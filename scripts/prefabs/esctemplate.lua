@@ -68,6 +68,26 @@ local function HateSpoilageAndMeat(inst)
 	end
 end
 
+local function ScienceAura(inst)
+	inst:AddComponent("playerprox") 
+	inst.components.playerprox:SetOnPlayerNear(function(inst, player)
+		if not player:HasTag("scienceaura") then
+			player:AddTag("scienceaura")
+			-- Available tech trees : science, magic, ancient, shadow
+			-- Rename it if you want.
+			local bonus = player.components.builder.science_bonus
+			bonus = bonus and bonus + 1 or 1 -- to prevent perk vanishing that increases tech bonus(like Wickerbottom)
+		end
+	end)
+	inst.components.playerprox:SetOnPlayerFar(function(inst, player)
+		if player:HasTag("scienceaura") then
+			player:RemoveTag("scienceaura")
+			local bonus = player.components.builder.science_bonus
+			bonus = bonus - 1
+		end
+	end)
+end
+
 local common_postinit = function(inst) 
 	inst.MiniMapEntity:SetIcon( "esctemplate.tex" )
 end
@@ -84,7 +104,8 @@ local master_postinit = function(inst)
 	inst.components.hunger.hungerrate = 1 * TUNING.WILSON_HUNGER_RATE
 	
 	--Fail_Craft(inst)
-	HateSpoilageAndMeat(inst)
+	--HateSpoilageAndMeat(inst)
+	ScienceAura(inst)
 	
 	inst.OnLoad = onload
 	inst.OnNewSpawn = onload
