@@ -70,7 +70,9 @@ end
 
 local function ScienceAura(inst)
 	inst:AddComponent("playerprox") 
+	inst.components.playerprox:SetDist(3,4)
 	inst.components.playerprox:SetOnPlayerNear(function(inst, player)
+		print("onnear", inst, player)
 		if not player:HasTag("scienceaura") then
 			player:AddTag("scienceaura")
 			-- Available tech trees : science, magic, ancient, shadow
@@ -80,6 +82,7 @@ local function ScienceAura(inst)
 		end
 	end)
 	inst.components.playerprox:SetOnPlayerFar(function(inst, player)
+		print("onfar", inst, player)
 		if player:HasTag("scienceaura") then
 			player:RemoveTag("scienceaura")
 			local bonus = player.components.builder.science_bonus
