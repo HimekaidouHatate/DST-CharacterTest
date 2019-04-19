@@ -68,25 +68,21 @@ local function HateSpoilageAndMeat(inst)
 	end
 end
 
+local AuraRadius = 3
+
 local function ScienceAura(inst)
-	inst:AddComponent("playerprox") 
-	inst.components.playerprox:SetDist(3,4)
-	inst.components.playerprox:SetOnPlayerNear(function(inst, player)
-		print("onnear", inst, player)
-		if not player:HasTag("scienceaura") then
-			player:AddTag("scienceaura")
-			-- Available tech trees : science, magic, ancient, shadow
-			-- Rename it if you want.
-			local bonus = player.components.builder.science_bonus
-			bonus = bonus and bonus + 1 or 1 -- to prevent perk vanishing that increases tech bonus(like Wickerbottom)
-		end
-	end)
-	inst.components.playerprox:SetOnPlayerFar(function(inst, player)
-		print("onfar", inst, player)
-		if player:HasTag("scienceaura") then
-			player:RemoveTag("scienceaura")
-			local bonus = player.components.builder.science_bonus
-			bonus = bonus - 1
+	inst:AddTag("scienceprovider")
+	inst:DoPeriodicTask(10 * FRAMES, function(inst)
+		local ents = TheSim:FindEntities(inst.Transform:GetWorldPosition(), AuraRadius, {"player"}, {"scienceaura", "playerghost"})
+		-- Added tag check to prevent perk vanishing that increases tech bonus(like Wickerbottom)
+		if ents ~= nil then 
+			for k, player in pairs(ents) do
+				player:AddTag("scienceaura")
+				-- Available tech trees : science, magic, ancient, shadow   
+				local bonus = player.components.builder.science_bonus -- Rename it if you want.
+				bonus = bonus and bonus + 1 or 1 
+				AddScienceBonusRemovalCallback(player)
+			end
 		end
 	end)
 end
