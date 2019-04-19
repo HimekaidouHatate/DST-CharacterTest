@@ -68,12 +68,12 @@ local function HateSpoilageAndMeat(inst)
 	end
 end
 
-local AuraRadius = 3
+local AuraRadius = 5
 
-local function AddScienceBonusRemovalCallback(inst)
+local function AddScienceBonusRemovalHandler(inst)
 	if inst.ScienceAuraRangeCheck ~= nil then return end
 	inst.ScienceAuraRangeCheck = inst:DoPeriodicTask(10 * FRAMES, function(inst)
-		if FindEntity(inst, AuraRadius, nil, {"scienceprovider"}) == nil then -- If the provider isn't stay near the player
+		if FindEntity(inst, AuraRadius, nil, {"scienceprovider"}) == nil then
 			inst:RemoveTag("scienceaura")
 			local bonus = inst.components.builder.science_bonus
 			inst.components.builder.science_bonus = bonus - 1 
@@ -96,7 +96,7 @@ local function ScienceAura(inst)
 				local bonus = player.components.builder.science_bonus -- Rename it if you want.
 				-- Available tech trees : science, magic, ancient, shadow   
 				player.components.builder.science_bonus = bonus + 1
-				AddScienceBonusRemovalCallback(player)
+				AddScienceBonusRemovalHandler(player)
 			end
 		end
 	end)
