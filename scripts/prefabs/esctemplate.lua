@@ -70,17 +70,32 @@ end
 
 local AuraRadius = 3
 
+local function AddScienceBonusRemovalCallback(inst)
+	if inst.ScienceAuraRangeCheck ~= nil then return end
+	inst.ScienceAuraRangeCheck = inst:DoPeriodicTask(10 * FRAMES, function(inst)
+		if FindEntity(inst, AuraRadius, nil, {"scienceprovider"}) == nil and not inst:HasTag("scienceprovider") then -- If the provider isn't stay near the player
+			inst:RemoveTag("scienceaura")
+			local bonus = inst.components.builder.science_bonus
+			inst.components.builder.science_bonus = bonus - 1 
+			inst.ScienceAuraRangeCheck:Cancel()
+			inst.ScienceAuraRangeCheck = nil
+		end
+	end)
+end
+
 local function ScienceAura(inst)
 	inst:AddTag("scienceprovider")
+	--inst.components.builder.science_bonus = 1
 	inst:DoPeriodicTask(10 * FRAMES, function(inst)
-		local ents = TheSim:FindEntities(inst.Transform:GetWorldPosition(), AuraRadius, {"player"}, {"scienceaura", "playerghost"})
+		local x, y, z = inst.Transform:GetWorldPosition()
+		local ents = TheSim:FindEntities(x, y, z, AuraRadius, {"player"}, {"scienceaura", "playerghost"})
 		-- Added tag check to prevent perk vanishing that increases tech bonus(like Wickerbottom)
 		if ents ~= nil then 
 			for k, player in pairs(ents) do
 				player:AddTag("scienceaura")
-				-- Available tech trees : science, magic, ancient, shadow   
 				local bonus = player.components.builder.science_bonus -- Rename it if you want.
-				bonus = bonus and bonus + 1 or 1 
+				-- Available tech trees : science, magic, ancient, shadow   
+				player.components.builder.science_bonus = bonus + 1
 				AddScienceBonusRemovalCallback(player)
 			end
 		end
