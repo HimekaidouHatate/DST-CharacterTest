@@ -31,17 +31,16 @@ local FAIL_CHANCE = 1
 
 local function Fail_Craft(inst)
 	local _Dobuild = inst.components.builder.DoBuild
-	function inst.components.builder.DoBuild(self, recname, ...)
+	function inst.components.builder.DoBuild(self, recname, pt, rotation, skin)
 		if math.random() <= FAIL_CHANCE then
 			local recipe = GetValidRecipe(recname)
 			if self.buffered_builds[recname] ~= nil then -- is bufferable?
-				self.buffered_builds[recname] = nil 
-				self.inst.replica.builder:SetIsBuildBuffered(recname, false) -- turn the buffer off
-			else
-				self:RemoveIngredients(self:GetIngredients(recname), recipe) -- or Remove its ingredients
+				return _Dobuild(self, recname, pt, rotation, skin)
 			end
-			
-			local item = SpawnPrefab(recipe.product)
+
+			self:RemoveIngredients(self:GetIngredients(recname), recipe) -- or Remove its ingredients
+
+			local item = SpawnPrefab(recipe.product, recipe.chooseskin or skin, nil, self.inst.userid) or nil
 			if item == nil then return end
 			item.Transform:SetPosition(inst.Transform:GetWorldPosition())
 			if not item.components.lootdropper then item:AddComponent("lootdropper") end
@@ -49,13 +48,15 @@ local function Fail_Craft(inst)
 				item.components.stackable:SetStackSize(recipe.numtogive)
 			end
 
+			self.inst:PushEvent("refreshcrafting")
+
 			inst.components.talker:Say("Oops!")
 			item.components.lootdropper:DropLoot()
 			item:Remove()
 			
 			return true -- to prevent action fail speech.
 		else
-			return _Dobuild(self, recname, ...)
+			return _Dobuild(self, recname, pt, rotation, skin)
 		end
 	end
 end
@@ -117,9 +118,9 @@ local master_postinit = function(inst)
 	
 	inst.components.hunger.hungerrate = 1 * TUNING.WILSON_HUNGER_RATE
 	
-	--Fail_Craft(inst)
+	Fail_Craft(inst)
 	--HateSpoilageAndMeat(inst)
-	ScienceAura(inst)
+	--ScienceAura(inst)
 	
 	inst.OnLoad = onload
 	inst.OnNewSpawn = onload
