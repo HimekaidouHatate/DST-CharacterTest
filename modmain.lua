@@ -2,6 +2,7 @@ PrefabFiles = {
 	"esctemplate",
 	"esctemplate_none",
 	"testweapon",
+	"teststructure",
 }
 
 Assets = {
@@ -54,6 +55,7 @@ STRINGS.CHARACTERS.ESCTEMPLATE = require "speech_esctemplate"
 
 STRINGS.NAMES.ESCTEMPLATE = "Esc"
 STRINGS.NAMES.TESTWEAPON = "Test Weapon"
+STRINGS.NAMES.TESTSTRUCTURE = "Test Structure"
 
 AddPrefabPostInit("crow", function(inst)
 	if not GLOBAL.TheWorld.ismastersim then
@@ -63,7 +65,6 @@ AddPrefabPostInit("crow", function(inst)
 	inst.components.lootdropper.randomloot[2]["weight"] = 0.25
 end)
 
--- Add mod character to mod character list. Also specify a gender. Possible genders are MALE, FEMALE, ROBOT, NEUTRAL, and PLURAL.
 AddModCharacter("esctemplate", "FEMALE")
 
 
