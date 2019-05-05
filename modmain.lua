@@ -65,6 +65,24 @@ AddPrefabPostInit("crow", function(inst)
 	inst.components.lootdropper.randomloot[2]["weight"] = 0.25
 end)
 
+AddPrefabPostInit("mound", function(inst)
+	if not GLOBAL.TheWorld.ismastersim then
+		return
+	end
+
+	local DoOldFinishCallback = inst.components.workable.onfinish
+		
+	inst.components.workable.onfinish = function(inst, worker)
+		if not worker.grave_sanity_loss then 
+			return DoOldFinishCallback(inst, worker) 
+		end
+
+		local sanity_old = worker.components.sanity.current
+		DoOldFinishCallback(inst, worker)
+		worker.components.sanity.current = sanity_old
+	end
+end)
+
 AddModCharacter("esctemplate", "FEMALE")
 
 

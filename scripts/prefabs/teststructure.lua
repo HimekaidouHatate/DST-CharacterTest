@@ -5,7 +5,6 @@ local assets = {
 local function OnInit(inst)
 	inst.icon = SpawnPrefab("globalmapicon")
 	inst.icon:TrackEntity(inst)
-	--inst.icon.Transform:SetPosition(inst.Transform:GetWorldPosition())
 end
 
 local function fn()
