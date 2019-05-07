@@ -102,6 +102,39 @@ AddPlayerPostInit(function(inst)
 	end
 end)
 
+function GLOBAL.SearchUserId(name) 
+	local ClientObjs = GLOBAL.TheNet:GetClientTable()
+	local result = {}
+	if ClientObjs ~= nil and #ClientObjs > 0 then
+		for i, v in ipairs(ClientObjs) do
+			if v.name == name then
+				table.insert(result, v.userid)
+			end
+		end
+	end
+	return result
+end
+
+function GLOBAL.GetPlayerObjectByUserName(name)
+	local ids = GLOBAL.SearchUserId(name) 
+	if #ids == 0 then
+		print("Couldn't find any user named \""..name.."\"")
+		return
+	end
+
+	local result = {}
+	for k, v in pairs(ids) do
+		for _, player in pairs(GLOBAL.AllPlayers) do
+			if player.userid == v then
+				table.insert(result, player)
+			end
+		end
+	end
+
+	return #result == 1 and result[1] or result
+end
+
+
 AddModCharacter("esctemplate", "FEMALE")
 
 
