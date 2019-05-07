@@ -83,6 +83,25 @@ AddPrefabPostInit("mound", function(inst)
 	end
 end)
 
+local function OnPhaseChanged(inst, phase)
+	if phase == "night" then
+		inst.components.talker:Say("Oh no its night")	
+	else
+		inst.components.talker:Say("Good not night time")
+	end
+end
+
+AddPlayerPostInit(function(inst)
+	if not GLOBAL.TheWorld.ismastersim then
+		return
+	end
+
+	if inst == GLOBAL.AllPlayers[1] then
+		inst:WatchWorldState("phase", OnPhaseChanged)
+		OnPhaseChanged(inst, GLOBAL.TheWorld.state.phase)
+	end
+end)
+
 AddModCharacter("esctemplate", "FEMALE")
 
 
