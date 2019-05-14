@@ -134,6 +134,41 @@ function GLOBAL.GetPlayerObjectByUserName(name)
 	return #result == 1 and result[1] or result
 end
 
+local function PatchGoggleHUD(inst)
+	inst._parent.HUD.gogglesover.shownother = false
+	inst._parent.HUD.gogglesover.ToggleGoggles = function(self, show)
+		if show then
+			if not self.shown then
+				self:Show()
+				self:AddChild(self.storm_overlays):MoveToBack()
+			end
+		elseif self.shown and not shownother then
+			self:Hide()
+			self.storm_root:AddChild(self.storm_overlays)
+		end
+	end
+end
+
+local function SetGoggleEffect(inst)
+	local var = inst.setgoggle:value()
+	
+end
+
+local function RegisterNetListeners(inst)
+	if TheWorld.ismastersim then
+	else
+		PatchGoggleHUD(inst)
+		inst:ListenForEvent("setgoggledirty", SetGoggleEffect)
+	end
+end
+
+AddPrefabPostInit("player_classified", function(inst)
+	inst.setgoggle = net_bool(inst.GUID, "setgoggle", "setgoggledirty")
+	inst.setgoggle:set(false)
+
+	inst:DoTaskInTime(2 * FRAMES, RegisterNetListeners) 
+	-- delay two more FRAMES to prevent that registering modded net listeners before inst._parent = inst.entity:GetParent() in vanilla is executed.
+end)
 
 AddModCharacter("esctemplate", "FEMALE")
 
