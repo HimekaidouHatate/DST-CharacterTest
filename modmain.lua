@@ -135,27 +135,30 @@ function GLOBAL.GetPlayerObjectByUserName(name)
 end
 
 local function PatchGoggleHUD(inst)
-	inst._parent.HUD.gogglesover.shownother = false
+	inst._parent.HUD.gogglesover.showother = false
 	inst._parent.HUD.gogglesover.ToggleGoggles = function(self, show)
 		if show then
 			if not self.shown then
 				self:Show()
 				self:AddChild(self.storm_overlays):MoveToBack()
 			end
-		elseif self.shown and not shownother then
-			self:Hide()
-			self.storm_root:AddChild(self.storm_overlays)
+		elseif not self.showother and not self.owner.replica.inventory:EquipHasTag("goggles") then
+			if self.shown then
+				self:Hide()
+				self.storm_root:AddChild(self.storm_overlays)
+			end
 		end
 	end
 end
 
 local function SetGoggleEffect(inst)
 	local var = inst.setgoggle:value()
-	
+	inst._parent.HUD.gogglesover.showother = var
+	inst._parent.HUD.gogglesover:ToggleGoggles(var)
 end
 
-local function RegisterNetListeners(inst)
-	if TheWorld.ismastersim then
+local function RegisterModNetListeners(inst)
+	if GLOBAL.TheWorld and GLOBAL.TheWorld.ismastersim then
 	else
 		PatchGoggleHUD(inst)
 		inst:ListenForEvent("setgoggledirty", SetGoggleEffect)
@@ -163,11 +166,11 @@ local function RegisterNetListeners(inst)
 end
 
 AddPrefabPostInit("player_classified", function(inst)
-	inst.setgoggle = net_bool(inst.GUID, "setgoggle", "setgoggledirty")
+	inst.setgoggle = GLOBAL.net_bool(inst.GUID, "setgoggle", "setgoggledirty")
 	inst.setgoggle:set(false)
 
-	inst:DoTaskInTime(2 * FRAMES, RegisterNetListeners) 
-	-- delay two more FRAMES to prevent that registering modded net listeners before inst._parent = inst.entity:GetParent() in vanilla is executed.
+	inst:DoTaskInTime(2 * GLOBAL.FRAMES, RegisterModNetListeners) 
+	-- delay two more FRAMES to ensure the original NetListeners to run first.
 end)
 
 AddModCharacter("esctemplate", "FEMALE")
