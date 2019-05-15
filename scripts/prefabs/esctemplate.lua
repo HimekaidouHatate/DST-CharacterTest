@@ -103,6 +103,15 @@ local function ScienceAura(inst)
 	end)
 end
 
+local function GetRawDamage(inst)
+	local _GetAttacked = inst.components.combat.GetAttacked
+	function inst.components.combat.GetAttacked(self, attacker, damage, ...)
+		inst:PushEvent("rawdamage", {damage = damage})
+
+		return _GetAttacked(self, attacker, damage, ...)
+	end
+end
+
 local common_postinit = function(inst) 
 	inst.MiniMapEntity:SetIcon( "esctemplate.tex" )
 end
@@ -118,9 +127,10 @@ local master_postinit = function(inst)
 	
 	inst.components.hunger.hungerrate = 1 * TUNING.WILSON_HUNGER_RATE
 	
-	Fail_Craft(inst)
+	--Fail_Craft(inst)
 	--HateSpoilageAndMeat(inst)
 	--ScienceAura(inst)
+	GetRawDamage(inst)
 	
 	inst.OnLoad = onload
 	inst.OnNewSpawn = onload
