@@ -136,8 +136,8 @@ end
 
 -------------------------------------------------------------------------------------------------------------------------------------------
 
-local function PatchGoggleHUD(inst)
-	if inst._parent.HUD == nil then return end
+local function PatchGoggleHUD(inst) -- run this on client because HUD doesn't exist in server.
+	if inst._parent.HUD == nil then return end -- If it's running in client, stop here.
 
 	inst._parent.HUD.gogglesover.showother = false
 	inst._parent.HUD.gogglesover.ToggleGoggles = function(self, show)
@@ -155,7 +155,8 @@ local function PatchGoggleHUD(inst)
 	end
 end
 
-local function SetGoggleEffect(inst)
+local function SetGoggleEffect(inst) -- run this on client because HUD doesn't exist in server.
+	if inst._parent.HUD == nil then return end -- If it's running in client, stop here.
 	local var = inst.setgoggle:value()
 	inst._parent.HUD.gogglesover.showother = var
 	inst._parent.HUD.gogglesover:ToggleGoggles(var)
@@ -203,11 +204,10 @@ end
 local function RegisterModNetListeners(inst)
 	if GLOBAL.TheWorld and GLOBAL.TheWorld.ismastersim then
 		inst._parent = inst.entity:GetParent()
-	else
-		inst:ListenForEvent("setgoggledirty", SetGoggleEffect)
 	end
 
-	PatchGoggleHUD(inst)
+	PatchGoggleHUD(inst) -- Patch both client and server, because it should be synced.
+	inst:ListenForEvent("setgoggledirty", SetGoggleEffect) -- Patch both client and server, because it should be synced.
 
 	RegisterKeyEvents(inst)
 	inst:ListenForEvent("setmogglevisiondirty", ToggleMoggoleScreen)
