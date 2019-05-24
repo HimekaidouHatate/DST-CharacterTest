@@ -134,7 +134,11 @@ function GLOBAL.GetPlayerObjectByUserName(name)
 	return #result == 1 and result[1] or result
 end
 
+-------------------------------------------------------------------------------------------------------------------------------------------
+
 local function PatchGoggleHUD(inst)
+	if inst._parent.HUD == nil then return end
+
 	inst._parent.HUD.gogglesover.showother = false
 	inst._parent.HUD.gogglesover.ToggleGoggles = function(self, show)
 		if show then
@@ -157,17 +161,64 @@ local function SetGoggleEffect(inst)
 	inst._parent.HUD.gogglesover:ToggleGoggles(var)
 end
 
+-------------------------------------------------------------------------------------------------------------------------------------------
+
+local function KeyCheckCommon(inst)
+	return inst == GLOBAL.ThePlayer and GLOBAL.TheFrontEnd:GetActiveScreen() ~= nil and GLOBAL.TheFrontEnd:GetActiveScreen().name == "HUD"
+end
+
+local function RegisterKeyEvents(classified)
+	local parent = classified._parent
+	if parent.HUD == nil then return end -- if it's not a client, stop here.
+
+	local modname = GLOBAL.KnownModIndex:GetModActualName("modprettyname")
+	local INFOKEY = GetModConfigData("mogglevisionkey", modname) or "KEY_X"
+	GLOBAL.TheInput:AddKeyDownHandler(GLOBAL["KEY_"..INFOKEY], function() 
+		if KeyCheckCommon(parent) then
+			SendModRPCToServer(MOD_RPC["globaltest"]["togglemoggle"], parent) 
+		end
+	end) 
+end
+
+local function ToggleMoggleRPC(inst)
+	inst.player_classified.mogglevision:set(not inst.components.playervision.forcenightvision)
+end
+AddModRPCHandler("globaltest", "togglemoggle", ToggleMoggleRPC)
+
+local NIGHTVISION_COLOURCUBES = {
+	day = "images/colour_cubes/mole_vision_off_cc.tex",
+    dusk = "images/colour_cubes/mole_vision_on_cc.tex",
+    night = "images/colour_cubes/mole_vision_on_cc.tex",
+    full_moon = "images/colour_cubes/mole_vision_off_cc.tex",
+}
+
+local function ToggleMoggoleScreen(inst)
+	local var = inst.mogglevision:value()
+	inst._parent.components.playervision:ForceNightVision(var)
+	inst._parent.components.playervision:SetCustomCCTable(var and NIGHTVISION_COLOURCUBES or nil)
+end
+
+-------------------------------------------------------------------------------------------------------------------------------------------
+
 local function RegisterModNetListeners(inst)
 	if GLOBAL.TheWorld and GLOBAL.TheWorld.ismastersim then
+		inst._parent = inst.entity:GetParent()
 	else
-		PatchGoggleHUD(inst)
 		inst:ListenForEvent("setgoggledirty", SetGoggleEffect)
 	end
+
+	PatchGoggleHUD(inst)
+
+	RegisterKeyEvents(inst)
+	inst:ListenForEvent("setmogglevisiondirty", ToggleMoggoleScreen)
 end
 
 AddPrefabPostInit("player_classified", function(inst)
 	inst.setgoggle = GLOBAL.net_bool(inst.GUID, "setgoggle", "setgoggledirty")
 	inst.setgoggle:set(false)
+
+	inst.mogglevision = GLOBAL.net_bool(inst.GUID, "setmogglevision", "setmogglevisiondirty")
+	inst.mogglevision:set(false)
 
 	inst:DoTaskInTime(2 * GLOBAL.FRAMES, RegisterModNetListeners) 
 	-- delay two more FRAMES to ensure the original NetListeners to run first.
